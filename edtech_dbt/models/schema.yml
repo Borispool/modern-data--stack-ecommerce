@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: dim_students
+    columns:
+      - name: student_id
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_enrollments
+    columns:
+      - name: enrollment_id
+        tests:
+          - unique
+          - not_null
+      - name: student_id
+        tests:
+          - relationships:
+              to: ref('dim_students')
+              field: student_id
+  
