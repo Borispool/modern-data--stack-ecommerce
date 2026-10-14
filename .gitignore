@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.env
+data_lake/
+airflow/airflow.cfg
+airflow/airflow.db
+airflow/logs/
+airflow/webserver_config.py
+ecommerce_dbt/target/
+ecommerce_dbt/dbt_packages/
