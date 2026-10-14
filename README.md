@@ -7,23 +7,26 @@ A robust, modern data platform built to ingest, model, orchestrate, and visualiz
 
 The system follows the **ELT (Extract, Load, Transform)** paradigm and **Kimball Dimensional Modeling (Star Schema)** to separate operational load from analytical querying:
 
-[ Mock OLTP System (Python Faker) ]
-│
-▼ (Extract & Load)
-[ PostgreSQL: Raw Storage Layer (raw schema) ]
-│
-▼ (Transform via dbt Core)
-[ PostgreSQL: Analytics Marts (analytics schema) ]
-├── dim_students
-├── dim_courses
-├── dim_instructors
-├── fct_enrollments
-└── fct_lesson_completions
-│
-┌────────┴────────┐
-▼                 ▼
-[ Apache Airflow ]   [ Metabase BI ]
-(Orchestration)     (Dashboards)
+```mermaid
+flowchart TD
+    A[Mock OLTP System<br>Python + Faker] -->|Extract & Load| B[(PostgreSQL: Raw Layer<br>schema: raw)]
+    B -->|Transform via dbt Core| C[(PostgreSQL: Analytics Marts<br>schema: analytics)]
+    
+    subgraph Dimensions
+        C --> D1[dim_students]
+        C --> D2[dim_courses]
+        C --> D3[dim_instructors]
+    end
+    
+    subgraph Facts
+        C --> F1[fct_enrollments]
+        C --> F2[fct_lesson_completions]
+        C --> F3[raw.reviews]
+    end
+
+    C -.->|Scheduled Runs| E[Apache Airflow]
+    C -.->|Dashboards & KPIs| F[Metabase BI]
+```
 
 
 ### Core Components
