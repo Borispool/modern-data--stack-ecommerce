@@ -49,7 +49,6 @@ def generate_students(num=500):
     print(f"Генерація {num} студентів (з брудними даними)...")
     students = []
     for i in range(1, num + 1):
-        # 10% пропущених email для тестування очищення в ЛР №2
         email = fake.email() if random.random() > 0.1 else None
         students.append({
             'student_id': i,
@@ -59,7 +58,6 @@ def generate_students(num=500):
             'registration_date': fake.date_between(start_date='-2y', end_date='today')
         })
     df = pd.DataFrame(students)
-    # 5% штучних дублікатів (для обробки через ROW_NUMBER в dbt)
     duplicates = df.sample(frac=0.05, random_state=42)
     df = pd.concat([df, duplicates], ignore_index=True)
     return df
@@ -74,7 +72,6 @@ def generate_enrollments(num=1200, student_ids=None, course_ids=None):
 
     for i in range(1, num + 1):
         enrollment_date = fake.date_time_between(start_date='-1y', end_date='now')
-        # Завдання методички: 20% пустих відгуків/коментарів
         feedback = fake.sentence(nb_words=8) if random.random() > 0.2 else None
         
         enrollments.append({
@@ -108,7 +105,6 @@ def generate_reviews(num=800, student_ids=None, course_ids=None):
     print(f"Генерація {num} відгуків на курси (reviews)...")
     reviews = []
     for i in range(1, num + 1):
-        # Вимога методички: 20% записів без коментаря (NULL)
         comment = fake.sentence(nb_words=10) if random.random() > 0.2 else None
         reviews.append({
             'review_id': i,
@@ -126,7 +122,6 @@ def load_data_to_dwh():
     df_courses = generate_courses(num=40, instructor_ids=df_instructors['instructor_id'].tolist())
     df_students = generate_students(num=500)
 
-    
     unique_student_ids = df_students['student_id'].dropna().unique().tolist()
     course_ids = df_courses['course_id'].tolist()
 
@@ -137,25 +132,27 @@ def load_data_to_dwh():
     print("\n--- ЗАВАНТАЖЕННЯ ДАНИХ У POSTGRESQL (СХЕМА: raw) ---")
     with engine.connect() as conn:
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS raw;"))
+        for tbl in ['instructors', 'courses', 'students', 'enrollments', 'lesson_completions', 'reviews']:
+            conn.execute(text(f"DROP VIEW IF EXISTS analytics.stg_{tbl} CASCADE;"))
+            conn.execute(text(f"DROP TABLE IF EXISTS raw.{tbl} CASCADE;"))
         conn.commit()
 
-    
-    df_instructors.to_sql('instructors', engine, schema='raw', if_exists='replace', index=False)
+    df_instructors.to_sql('instructors', engine, schema='raw', if_exists='append', index=False)
     print("Таблиця raw.instructors завантажена.")
 
-    df_courses.to_sql('courses', engine, schema='raw', if_exists='replace', index=False)
+    df_courses.to_sql('courses', engine, schema='raw', if_exists='append', index=False)
     print("Таблиця raw.courses завантажена.")
 
-    df_students.to_sql('students', engine, schema='raw', if_exists='replace', index=False)
+    df_students.to_sql('students', engine, schema='raw', if_exists='append', index=False)
     print("Таблиця raw.students завантажена.")
 
-    df_enrollments.to_sql('enrollments', engine, schema='raw', if_exists='replace', index=False)
+    df_enrollments.to_sql('enrollments', engine, schema='raw', if_exists='append', index=False)
     print("Таблиця raw.enrollments завантажена.")
 
-    df_completions.to_sql('lesson_completions', engine, schema='raw', if_exists='replace', index=False)
+    df_completions.to_sql('lesson_completions', engine, schema='raw', if_exists='append', index=False)
     print("Таблиця raw.lesson_completions завантажена.")
 
-    df_reviews.to_sql('reviews', engine, schema='raw', if_exists='replace', index=False)
+    df_reviews.to_sql('reviews', engine, schema='raw', if_exists='append', index=False)
     print("Таблиця raw.reviews завантажена.")       
 
     print("\n[SUCCESS] Усі таблиці успішно згенеровані та завантажені у схему 'raw'!")
