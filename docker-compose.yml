@@ -1,9 +1,6 @@
-version: '3.8'
-
 services:
-  dwh_postgres:
+  edtech_dwh_postgres:
     image: postgres:15
-    container_name: edtech_dwh_postgres
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: adminpassword
@@ -12,6 +9,15 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  metabase:
+    image: metabase/metabase:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - edtech_dwh_postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   pgdata:

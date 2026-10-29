@@ -129,6 +129,18 @@ def load_data_to_dwh():
     df_completions = generate_lesson_completions(num=4000, student_ids=unique_student_ids, course_ids=course_ids)
     df_reviews = generate_reviews(num=800, student_ids=unique_student_ids, course_ids=course_ids)
 
+    print("\n--- ЗБЕРЕЖЕННЯ В DATA LAKE (PARQUET) ---")
+    os.makedirs('data_lake', exist_ok=True)
+    
+    df_instructors.to_parquet('data_lake/raw_instructors.parquet', index=False)
+    df_courses.to_parquet('data_lake/raw_courses.parquet', index=False)
+    df_students.to_parquet('data_lake/raw_students.parquet', index=False)
+    df_enrollments.to_parquet('data_lake/raw_enrollments.parquet', index=False)
+    df_completions.to_parquet('data_lake/raw_lesson_completions.parquet', index=False)
+    df_reviews.to_parquet('data_lake/raw_reviews.parquet', index=False)
+    
+    print("Файли успішно збережено у папці /data_lake")
+
     print("\n--- ЗАВАНТАЖЕННЯ ДАНИХ У POSTGRESQL (СХЕМА: raw) ---")
     with engine.connect() as conn:
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS raw;"))
