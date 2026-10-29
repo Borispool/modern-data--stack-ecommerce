@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: raw_edtech
+    schema: raw
+    tables:
+      - name: students
+        columns:
+          - name: student_id
+            tests:
+              - unique
+          - name: email
+            tests:
+              - not_null
+      - name: courses
+      - name: instructors
+      - name: enrollments
+      - name: lesson_completions
+      - name: reviews
